@@ -212,7 +212,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 20
     permissions:
-      contents: read
+      contents: write
     env:
       RELEASE_TAG: ${{ inputs.release_tag }}
       ARTIFACT_ONLY: ${{ toJSON(inputs.artifact_only) }}
