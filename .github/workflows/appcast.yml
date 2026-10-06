@@ -262,21 +262,42 @@ jobs:
             'X-GitHub-Api-Version' = '2022-11-28'
           }
           $apiBase = "https://api.github.com/repos/$env:GITHUB_REPOSITORY"
+          function Stop-GitHubRead {
+            param($Failure, [string]$Stage)
+            $httpStatus = 'none'
+            if ($null -ne $Failure.Exception.Response) {
+              try { $httpStatus = [int]$Failure.Exception.Response.StatusCode } catch { $httpStatus = 'unavailable' }
+            }
+            $detail = [string]$Failure.Exception.Message
+            if (-not [string]::IsNullOrEmpty($env:GITHUB_TOKEN)) {
+              $detail = $detail.Replace($env:GITHUB_TOKEN, '[REDACTED]')
+            }
+            $detail = $detail -replace '(?i)Bearer\s+\S+', 'Bearer [REDACTED]' -replace '[\r\n]+', ' '
+            if ($detail.Length -gt 300) { $detail = $detail.Substring(0, 300) }
+            # Do not print headers, request objects, response bodies, or ErrorDetails.
+            # Every failure, including 401/403/404, stops without another credential or endpoint.
+            throw ('GitHub read stopped: stage={0}; HTTP={1}; type={2}; detail={3}' -f $Stage, $httpStatus, $Failure.Exception.GetType().FullName, $detail)
+          }
           # The tag endpoint is published-only; draft resolution uses the list API.
           $matchingDrafts = @()
           $page = 1
           try {
             do {
+              $stage = "list releases page $page"
               $releases = Invoke-RestMethod -Uri "$apiBase/releases?per_page=100&page=$page" -Headers $headers
               $releases = @($releases)
-              $matchingDrafts += @($releases | Where-Object { $_.tag_name -ceq $env:RELEASE_TAG -and $_.draft -eq $true })
+              $matchesOnPage = @($releases | Where-Object { $_.tag_name -ceq $env:RELEASE_TAG -and $_.draft -eq $true })
+              $matchingDrafts += $matchesOnPage
+              Write-Host ('Draft lookup: page={0}; releases={1}; matches={2}; totalMatches={3}' -f $page, $releases.Count, $matchesOnPage.Count, $matchingDrafts.Count)
               $page++
             } while ($releases.Count -eq 100)
-            if ($matchingDrafts.Count -ne 1) { throw 'Expected exactly one visible matching draft' }
+            $stage = 'validate draft selection'
+            if ($matchingDrafts.Count -ne 1) { throw "Expected exactly one visible matching draft; found $($matchingDrafts.Count)" }
             $releaseId = [long]$matchingDrafts[0].id
             if ($releaseId -le 0) { throw 'Invalid draft release ID' }
+            $stage = "get release $releaseId"
             $release = Invoke-RestMethod -Uri "$apiBase/releases/$releaseId" -Headers $headers
-          } catch { throw 'Cannot resolve exactly one draft with the existing GITHUB_TOKEN; stop without requesting new credentials' }
+          } catch { Stop-GitHubRead -Failure $_ -Stage $stage }
           if ($release.draft -ne $true -or $release.tag_name -cne $env:RELEASE_TAG) { throw 'Expected the exact draft release' }
           $assets = @($release.assets | Where-Object { $_.name -ceq $assetName })
           if ($assets.Count -ne 1) { throw 'Draft must contain exactly one Tm_setup.msi asset' }
@@ -289,7 +310,7 @@ jobs:
           $headers['Accept'] = 'application/octet-stream'
           try {
             Invoke-WebRequest -Uri "$apiBase/releases/assets/$($asset.id)" -Headers $headers -OutFile (Join-Path $downloadDir $assetName)
-          } catch { throw 'Cannot download the draft asset with the existing GITHUB_TOKEN; stop without requesting new credentials' }
+          } catch { Stop-GitHubRead -Failure $_ -Stage "download asset $($asset.id)" }
           @{
             releaseId = [long]$release.id
             assetId = [long]$asset.id
