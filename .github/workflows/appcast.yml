@@ -6,8 +6,26 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: "TM release tag to publish to the AppCast (for example, tm-v1.0.134)"
+        description: "TM release tag (for example, tm-v1.0.154); artifact-only requires a draft"
         required: true
+        type: string
+
+      artifact_only:
+        description: "Verify a draft MSI and upload candidate signatures only; never publish"
+        required: true
+        type: boolean
+        default: false
+      expected_sha256:
+        description: "Required for artifact-only: independently verified MSI SHA256 (64 hex characters)"
+        required: false
+        type: string
+      expected_version:
+        description: "Required for artifact-only: independently verified MSI ProductVersion"
+        required: false
+        type: string
+      expected_length:
+        description: "Required for artifact-only: independently verified MSI length in bytes"
+        required: false
         type: string
 
 permissions:
@@ -15,15 +33,17 @@ permissions:
 
 jobs:
   appcast:
+    if: github.event_name == 'release' || inputs.artifact_only == false
     runs-on: windows-latest
     env:
       RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
     steps:
       - name: Check if tag starts with tm-v
         id: tagcheck
         shell: pwsh
         run: |
-          $tag = "${{ env.RELEASE_TAG }}"
+          $tag = $env:RELEASE_TAG
           if ($tag -notmatch '^tm-v') {
             Write-Host "Tag does not start with tm-v → skip"
             "skip=true"  | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
@@ -69,11 +89,14 @@ jobs:
       - name: Restore signing keys
         if: steps.tagcheck.outputs.skip == 'false'
         shell: pwsh
+        env:
+          NETSPARKLE_PRIV: ${{ secrets.NETSPARKLE_PRIV }}
+          NETSPARKLE_PUB: ${{ secrets.NETSPARKLE_PUB }}
         run: |
           $KeyDir = "$env:LOCALAPPDATA\Netsparkle"
           New-Item -ItemType Directory -Force -Path $KeyDir | Out-Null
-          Set-Content -Path (Join-Path $KeyDir 'NetSparkle_Ed25519.priv') -Value '${{ secrets.NETSPARKLE_PRIV }}' -NoNewline -Encoding ascii
-          Set-Content -Path (Join-Path $KeyDir 'NetSparkle_Ed25519.pub')  -Value '${{ secrets.NETSPARKLE_PUB }}'  -NoNewline -Encoding ascii
+          Set-Content -Path (Join-Path $KeyDir 'NetSparkle_Ed25519.priv') -Value $env:NETSPARKLE_PRIV -NoNewline -Encoding ascii
+          Set-Content -Path (Join-Path $KeyDir 'NetSparkle_Ed25519.pub')  -Value $env:NETSPARKLE_PUB  -NoNewline -Encoding ascii
 
       - name: Echo public key for sanity check
         if: steps.tagcheck.outputs.skip == 'false'
@@ -145,7 +168,7 @@ jobs:
           $xml = [xml](Get-Content appcast_out/appcast.xml -Raw)
           $enc = $xml.rss.channel.item.enclosure
           $lenXml = [int64]$enc.length
-          $fileOnDisk = "${{ env.ASSET_PATH }}"
+          $fileOnDisk = $env:ASSET_PATH
           $lenReal = (Get-Item $fileOnDisk).Length
           if ($lenXml -ne $lenReal) { throw "Length mismatch: appcast=$lenXml, file=$lenReal" }
           if (-not (Test-Path appcast_out/appcast.xml.signature)) { throw "Missing appcast.xml.signature" }
@@ -166,9 +189,254 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .gitattributes tm_update/appcast.xml tm_update/appcast.xml.signature
-          git commit -m "chore(appcast): update for ${{ env.RELEASE_TAG }}" || echo "Nothing to commit"
+          git commit -m "chore(appcast): update for $env:RELEASE_TAG" || echo "Nothing to commit"
           # The site can change while the release asset is being signed.
           # Preserve any generated working-tree metadata while replaying this
           # AppCast commit on top of the latest default branch.
-          git pull --rebase --autostash origin ${{ github.event.repository.default_branch }}
-          git push origin HEAD:${{ github.event.repository.default_branch }}
+          git pull --rebase --autostash origin "$env:DEFAULT_BRANCH"
+          git push origin "HEAD:$env:DEFAULT_BRANCH"
+
+      - name: Remove published-job signing key files
+        if: always()
+        shell: pwsh
+        run: |
+          $keyDir = Join-Path $env:LOCALAPPDATA 'Netsparkle'
+          foreach ($name in @('NetSparkle_Ed25519.priv', 'NetSparkle_Ed25519.pub')) {
+            Remove-Item -LiteralPath (Join-Path $keyDir $name) -Force -ErrorAction SilentlyContinue
+          }
+
+  # A separate job is the publication boundary. It never checks out the repo,
+  # has no contents-write token, and cannot execute the publication job above.
+  artifact_only:
+    if: github.event_name == 'workflow_dispatch' && inputs.artifact_only == true
+    runs-on: windows-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      ARTIFACT_ONLY: ${{ toJSON(inputs.artifact_only) }}
+      EXPECTED_SHA256: ${{ inputs.expected_sha256 }}
+      EXPECTED_VERSION: ${{ inputs.expected_version }}
+      EXPECTED_LENGTH: ${{ inputs.expected_length }}
+    steps:
+      - name: Validate artifact-only inputs
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:ARTIFACT_ONLY -cne 'true') { throw 'artifact_only must be the boolean true' }
+          if ($env:GITHUB_REPOSITORY -cne 'ilseoeng/ilseoeng.github.io' -or $env:GITHUB_REF -cne 'refs/heads/main') {
+            throw 'Artifact signing is restricted to this repository main workflow'
+          }
+          if ($env:EXPECTED_SHA256 -cnotmatch '^[0-9a-fA-F]{64}$') { throw 'Expected SHA256 is required' }
+          if ($env:EXPECTED_VERSION -cnotmatch '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,5}$') { throw 'Expected MSI version is required' }
+          $version = [version]$env:EXPECTED_VERSION
+          if ($version.Major -gt 255 -or $version.Minor -gt 255 -or $version.Build -gt 65535) { throw 'Invalid MSI version' }
+          if ($env:RELEASE_TAG -cne ('tm-v' + $env:EXPECTED_VERSION)) { throw 'Release tag and expected version differ' }
+          if ($env:EXPECTED_LENGTH -cnotmatch '^[1-9][0-9]{0,9}$') { throw 'Expected MSI byte length is required' }
+          if ([long]$env:EXPECTED_LENGTH -ge 2147483648) { throw 'MSI exceeds verifier size limit' }
+
+      - name: Setup artifact verification .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install pinned AppCast generator
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          dotnet tool install NetSparkleUpdater.Tools.AppCastGenerator --version 2.9.0 --framework net8.0 --tool-path "$env:RUNNER_TEMP\tm-appcast-tools"
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned AppCast generator installation failed' }
+
+      - name: Download exact draft asset via GitHub API
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $assetName = 'Tm_setup.msi'
+          $headers = @{
+            'User-Agent' = 'tm-appcast-artifact-verification'
+            'Authorization' = "Bearer $env:GITHUB_TOKEN"
+            'Accept' = 'application/vnd.github+json'
+            'X-GitHub-Api-Version' = '2022-11-28'
+          }
+          $apiBase = "https://api.github.com/repos/$env:GITHUB_REPOSITORY"
+          # The tag endpoint is published-only; draft resolution uses the list API.
+          $matchingDrafts = @()
+          $page = 1
+          try {
+            do {
+              $releases = Invoke-RestMethod -Uri "$apiBase/releases?per_page=100&page=$page" -Headers $headers
+              $releases = @($releases)
+              $matchingDrafts += @($releases | Where-Object { $_.tag_name -ceq $env:RELEASE_TAG -and $_.draft -eq $true })
+              $page++
+            } while ($releases.Count -eq 100)
+            if ($matchingDrafts.Count -ne 1) { throw 'Expected exactly one visible matching draft' }
+            $releaseId = [long]$matchingDrafts[0].id
+            if ($releaseId -le 0) { throw 'Invalid draft release ID' }
+            $release = Invoke-RestMethod -Uri "$apiBase/releases/$releaseId" -Headers $headers
+          } catch { throw 'Cannot resolve exactly one draft with the existing GITHUB_TOKEN; stop without requesting new credentials' }
+          if ($release.draft -ne $true -or $release.tag_name -cne $env:RELEASE_TAG) { throw 'Expected the exact draft release' }
+          $assets = @($release.assets | Where-Object { $_.name -ceq $assetName })
+          if ($assets.Count -ne 1) { throw 'Draft must contain exactly one Tm_setup.msi asset' }
+          $asset = $assets[0]
+          if ($asset.state -ne 'uploaded' -or [long]$asset.id -le 0) { throw 'Asset is not fully uploaded' }
+          if ([long]$asset.size -ne [long]$env:EXPECTED_LENGTH) { throw 'Draft asset length differs from approval' }
+          if ($asset.digest -and $asset.digest -ine ('sha256:' + $env:EXPECTED_SHA256)) { throw 'Draft asset digest differs from approval' }
+          $downloadDir = Join-Path $env:RUNNER_TEMP 'tm-draft-download'
+          New-Item -ItemType Directory -Force -Path $downloadDir | Out-Null
+          $headers['Accept'] = 'application/octet-stream'
+          try {
+            Invoke-WebRequest -Uri "$apiBase/releases/assets/$($asset.id)" -Headers $headers -OutFile (Join-Path $downloadDir $assetName)
+          } catch { throw 'Cannot download the draft asset with the existing GITHUB_TOKEN; stop without requesting new credentials' }
+          @{
+            releaseId = [long]$release.id
+            assetId = [long]$asset.id
+            assetName = $assetName
+            releaseTag = $env:RELEASE_TAG
+            draft = $true
+          } | ConvertTo-Json | Set-Content (Join-Path $downloadDir 'source.json') -Encoding utf8
+
+      - name: Validate draft MSI
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $msi = Join-Path $env:RUNNER_TEMP 'tm-draft-download\Tm_setup.msi'
+          $hash = (Get-FileHash -LiteralPath $msi -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash -cne $env:EXPECTED_SHA256.ToLowerInvariant()) { throw 'MSI SHA256 mismatch' }
+          if ((Get-Item -LiteralPath $msi).Length -ne [long]$env:EXPECTED_LENGTH) { throw 'MSI length mismatch' }
+          # OpenDatabase mode 0 reads metadata only. Never install or launch the MSI.
+          $installer = $database = $view = $record = $null
+          try {
+            $installer = New-Object -ComObject WindowsInstaller.Installer
+            $database = $installer.OpenDatabase($msi, 0)
+            $view = $database.OpenView("SELECT ``Value`` FROM ``Property`` WHERE ``Property``='ProductVersion'")
+            $view.Execute()
+            $record = $view.Fetch()
+            if ($null -eq $record) { throw 'MSI ProductVersion is missing' }
+            $productVersion = $record.StringData(1)
+            if ($productVersion -cne $env:EXPECTED_VERSION) { throw 'MSI ProductVersion mismatch' }
+          } finally {
+            if ($view) { $view.Close() }
+            foreach ($com in @($record, $view, $database, $installer)) {
+              if ($null -ne $com) { [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($com) }
+            }
+          }
+          $authenticode = Get-AuthenticodeSignature -LiteralPath $msi
+          @{
+            sha256 = $hash
+            length = (Get-Item -LiteralPath $msi).Length
+            productVersion = $productVersion
+            authenticodeStatus = $authenticode.Status.ToString()
+            authenticodeSigner = if ($authenticode.SignerCertificate) { $authenticode.SignerCertificate.Subject } else { $null }
+          } | ConvertTo-Json | Set-Content (Join-Path $env:RUNNER_TEMP 'tm-draft-download\validated.json') -Encoding utf8
+
+      - name: Sign and verify candidate
+        shell: pwsh
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.NETSPARKLE_PRIV }}
+          SPARKLE_PUBLIC_KEY: ${{ secrets.NETSPARKLE_PUB }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # Pinned updater trust anchor: Win_IRIN be543300459a41fe0b6b0790d208902f08769efe/TmUpdater/Program.vb.
+          # Before dispatch, independently confirm this also matches the updater in the approved MSI.
+          $updaterPublicKey = 'mIPLrmwtzQLydG/tSA67dj1gJaKGS7pRm+3pCslmgxU='
+          $keyDir = Join-Path $env:RUNNER_TEMP 'tm-appcast-key-scope'
+          try {
+            if ([string]::IsNullOrWhiteSpace($env:SPARKLE_PRIVATE_KEY) -or $env:SPARKLE_PUBLIC_KEY.Trim() -cne $updaterPublicKey) {
+              throw 'Existing signing keys are missing or do not match the updater public key'
+            }
+            if ([Convert]::FromBase64String($env:SPARKLE_PRIVATE_KEY.Trim()).Length -ne 32) { throw 'Expected the existing NetSparkle 32-byte private seed' }
+            # The tool reads the existing secrets from this step environment. No key is written to disk.
+            $env:SPARKLE_PRIVATE_KEY = $env:SPARKLE_PRIVATE_KEY.Trim()
+            $env:SPARKLE_PUBLIC_KEY = $updaterPublicKey
+            $msi = Join-Path $env:RUNNER_TEMP 'tm-draft-download\Tm_setup.msi'
+            $toolDir = Join-Path $env:RUNNER_TEMP 'tm-appcast-tools'
+            $tool = Join-Path $toolDir 'netsparkle-generate-appcast.exe'
+            $outDir = Join-Path $env:GITHUB_WORKSPACE 'candidate'
+            New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+            $baseUrl = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:RELEASE_TAG"
+            & $tool --key-path $keyDir -a $outDir --single-file $msi -o windows -n 'TM Server' --output-type xml --human-readable -u $baseUrl --file-version $env:EXPECTED_VERSION
+            if ($LASTEXITCODE -ne 0) { throw 'AppCast generator failed' }
+            $feed = Join-Path $outDir 'appcast.xml'
+            $feedSigPath = Join-Path $outDir 'appcast.xml.signature'
+            if (-not (Test-Path -LiteralPath $feed) -or -not (Test-Path -LiteralPath $feedSigPath)) { throw 'Generated candidate is incomplete' }
+            $settings = [Xml.XmlReaderSettings]::new()
+            $settings.DtdProcessing = [Xml.DtdProcessing]::Prohibit
+            $settings.XmlResolver = $null
+            $reader = [Xml.XmlReader]::Create($feed, $settings)
+            try { $xml = [Xml.XmlDocument]::new(); $xml.XmlResolver = $null; $xml.Load($reader) } finally { $reader.Dispose() }
+            $items = @($xml.SelectNodes('/rss/channel/item'))
+            if ($items.Count -ne 1) { throw 'Expected exactly one candidate feed item' }
+            $enclosures = @($items[0].SelectNodes('enclosure'))
+            if ($enclosures.Count -ne 1) { throw 'Expected exactly one enclosure' }
+            $enc = $enclosures[0]
+            $ns = 'http://www.andymatuschak.org/xml-namespaces/sparkle'
+            if ($enc.GetAttribute('version', $ns) -cne $env:EXPECTED_VERSION) { throw 'Feed version mismatch' }
+            if ([long]$enc.GetAttribute('length') -ne [long]$env:EXPECTED_LENGTH) { throw 'Feed length mismatch' }
+            if ($enc.GetAttribute('url') -cne "$baseUrl/Tm_setup.msi") { throw 'Feed download URL mismatch' }
+            $msiSignature = $enc.GetAttribute('signature', $ns)
+            $feedSignature = (Get-Content -LiteralPath $feedSigPath -Raw).Trim()
+            if ([Convert]::FromBase64String($msiSignature).Length -ne 64 -or [Convert]::FromBase64String($feedSignature).Length -ne 64) {
+              throw 'Invalid Ed25519 signature length'
+            }
+            # Do not trust the CLI --verify exit code (2.9.0 returns zero even on invalid signatures).
+            # Use the same raw-message Ed25519.Verify API as TmUpdater, from the pinned tool dependency.
+            $nacl = @(Get-ChildItem -LiteralPath $toolDir -Recurse -File -Filter '*NaCl*.dll' | Where-Object { $_.FullName -match '[\\/]net8\.0[\\/]' })
+            if ($nacl.Count -ne 1) { throw 'Cannot locate the pinned net8.0 Chaos.NaCl verifier' }
+            Add-Type -Path $nacl[0].FullName
+            $pub = [Convert]::FromBase64String($updaterPublicKey)
+            if (-not [Chaos.NaCl.Ed25519]::Verify([Convert]::FromBase64String($msiSignature), [IO.File]::ReadAllBytes($msi), $pub)) {
+              throw 'MSI signature verification failed'
+            }
+            if (-not [Chaos.NaCl.Ed25519]::Verify([Convert]::FromBase64String($feedSignature), [IO.File]::ReadAllBytes($feed), $pub)) {
+              throw 'AppCast signature verification failed'
+            }
+            $validated = Get-Content (Join-Path $env:RUNNER_TEMP 'tm-draft-download\validated.json') -Raw | ConvertFrom-Json
+            # Recheck bytes after generation; never sign a changed or substituted candidate.
+            if ((Get-FileHash -LiteralPath $msi -Algorithm SHA256).Hash -ine $validated.sha256) { throw 'MSI changed during signing' }
+            Set-Content -LiteralPath (Join-Path $outDir 'Tm_setup.msi.signature') -Value $msiSignature -NoNewline -Encoding ascii
+            @{
+              artifactOnly = $true
+              source = Get-Content (Join-Path $env:RUNNER_TEMP 'tm-draft-download\source.json') -Raw | ConvertFrom-Json
+              msi = $validated
+              updaterPublicKey = $updaterPublicKey
+              updaterKeySourceCommit = 'be543300459a41fe0b6b0790d208902f08769efe'
+              msiSignatureVerified = $true
+              appcastSignatureVerified = $true
+              appcastSha256 = (Get-FileHash -LiteralPath $feed -Algorithm SHA256).Hash.ToLowerInvariant()
+              generatorVersion = '2.9.0'
+              workflowCommit = $env:GITHUB_SHA
+              runId = $env:GITHUB_RUN_ID
+              runAttempt = $env:GITHUB_RUN_ATTEMPT
+              verifiedAtUtc = [DateTime]::UtcNow.ToString('o')
+              note = 'Ed25519 updater verification only. Does not add Windows Authenticode or publish a release/feed.'
+            } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $outDir 'verification.json') -Encoding utf8
+          } finally {
+            Remove-Item Env:SPARKLE_PRIVATE_KEY, Env:SPARKLE_PUBLIC_KEY -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath $keyDir -Recurse -Force -ErrorAction SilentlyContinue
+          }
+
+      - name: Remove any signing key files
+        if: always()
+        shell: pwsh
+        run: |
+          Remove-Item -LiteralPath (Join-Path $env:RUNNER_TEMP 'tm-appcast-key-scope') -Recurse -Force -ErrorAction SilentlyContinue
+          $defaultKeyDir = Join-Path $env:LOCALAPPDATA 'netsparkle'
+          foreach ($name in @('NetSparkle_Ed25519.priv', 'NetSparkle_Ed25519.pub')) {
+            Remove-Item -LiteralPath (Join-Path $defaultKeyDir $name) -Force -ErrorAction SilentlyContinue
+          }
+
+      - name: Upload verified candidate allowlist
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: tm-appcast-candidate-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            candidate/appcast.xml
+            candidate/appcast.xml.signature
+            candidate/Tm_setup.msi.signature
+            candidate/verification.json
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 7
