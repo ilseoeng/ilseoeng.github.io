@@ -25,3 +25,16 @@
 .tour-viewport{position:relative}.tour-highlight{left:16%;top:15%;width:41%;height:30%}.tour-screen[data-scene=memo] .tour-highlight{left:60%;top:22%;width:37%;height:11%}.tour-screen[data-scene=ai] .tour-highlight{left:16%;top:59%;width:41%;height:34%}.tour-screen[data-scene=notice] .tour-highlight{left:72%;top:73%;width:26%;height:22%}
 
 @media(min-width:761px) and (max-width:1000px){.header{height:68px}.header-inner{gap:10px}.nav-toggle{display:block}.nav{position:absolute;top:68px;left:0;right:0;border-bottom:1px solid var(--line);background:#fff;padding:22px;display:none;flex-wrap:wrap;gap:22px}.nav.open{display:flex}.nav .language{margin-left:auto}.guide-nav{top:68px}}
+
+/* Lead with the user's problem, then connect it to four concrete benefits. */
+.hero-copy h1{font-size:clamp(30px,3.1vw,44px);line-height:1.42;letter-spacing:-.055em}
+.hero-question{font-size:clamp(17px,1.5vw,21px);font-weight:700;line-height:1.7;margin-top:22px;max-width:460px;word-break:keep-all;letter-spacing:-.035em}
+.hero-copy .lead{font-size:15px;margin-top:14px}
+.benefits-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.benefit-card{padding:30px 32px;border:1px solid var(--line);border-radius:14px;background:var(--paper);min-width:0}
+.benefit-number{display:block;color:var(--blue);font-size:12px;font-weight:800;letter-spacing:.08em;margin-bottom:18px}
+.benefit-card h3{font-size:22px;max-width:490px;line-height:1.5}
+.benefit-card p{font-size:14px;line-height:1.9;color:var(--muted);margin-top:15px}
+.benefit-card small{display:block;color:var(--muted);font-size:11px;line-height:1.8;margin-top:13px;word-break:keep-all}
+.benefits-tour{padding-top:0}
+@media(max-width:760px){.hero-copy h1{font-size:clamp(27px,6vw,38px)}.hero-question{font-size:18px;margin-top:18px}.hero-copy .lead{font-size:14px}.benefits-grid{grid-template-columns:1fr;gap:14px}.benefit-card{padding:24px}.benefit-number{margin-bottom:10px}.benefit-card h3{font-size:20px}.benefit-card p{font-size:13px;margin-top:12px}}
