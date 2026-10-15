@@ -4,6 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <script>
+        // Consume links before any third-party scripts load. Passwords from old
+        // app versions are discarded, never prefilled or sent to the server.
+        (() => {
+            const query = new URLSearchParams(window.location.search);
+            const hash = new URLSearchParams(window.location.hash.slice(1));
+            window.__tmRechargeLink = { ticket: hash.get('ticket') || query.get('ticket'), code: query.get('code') };
+            if (window.location.search || window.location.hash) history.replaceState(history.state, '', window.location.pathname);
+        })();
+    </script>
     <title>이용권 충전 센터 | 콜센터만들기</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
@@ -215,23 +226,13 @@
     </footer>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCsdo-gps3z3nvwJ_EjNe0e4ZI4s4QH7XM",
-            projectId: "gen-lang-client-0349319821",
-            authDomain: "gen-lang-client-0349319821.firebaseapp.com"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        import { installRecharge } from "./recharge.js";
 
         if (typeof Paddle !== 'undefined') {
             Paddle.Environment.set('production');
-            Paddle.Initialize({ token: 'live_15a1740f8b90366c35ac356abbc' });
+            Paddle.Initialize({ eventCallback: event => window.rechargeCheckoutEvent?.(event.name), token: 'live_15a1740f8b90366c35ac356abbc' });
         }
 
-        window.isDeviceVerified = false;
         window.currentLang = 'ko';
 
         window.translations = {
@@ -280,76 +281,14 @@
             localStorage.setItem('preferredLang', lang);
         };
 
-        window.verifyDevice = async (isAuto = false) => {
-            if (!isAuto && typeof grecaptcha !== "undefined") {
-                if (grecaptcha.getResponse().length === 0) { alert("reCAPTCHA 인증이 필요합니다."); return; }
-            }
-            const codeInput = document.getElementById('remoteCode');
-            const pwInput = document.getElementById('password');
-            let rawCode = codeInput.value.trim().toLowerCase();
-            const password = pwInput.value.trim();
-            if (rawCode.length === 6 && !rawCode.includes(" ")) rawCode = rawCode.substring(0, 3) + " " + rawCode.substring(3);
-            if (!rawCode || !password) return;
-            try {
-                const q = query(collection(db, "devices"), where("serial_code", "==", rawCode), where("password", "==", password), limit(1));
-                const querySnapshot = await getDocs(q);
-                if (!querySnapshot.empty) {
-                    window.isDeviceVerified = true;
-                    document.getElementById('statusMsg').innerHTML = window.translations[window.currentLang].status_ok;
-                    document.getElementById('statusMsg').classList.replace('text-slate-300', 'text-green-600');
-                    if (!isAuto) {
-                        alert(window.currentLang === 'ko' ? "인증 성공!" : "Verification Success!");
-                        document.getElementById('pricingSection').scrollIntoView({ behavior: 'smooth' });
-                    }
-                } else {
-                    alert(window.currentLang === 'ko' ? "인증 실패! 코드와 비밀번호를 확인해주세요." : "Verification Failed! Please check again.");
-                }
-            } catch (e) { console.error(e); alert("Error: " + e.message); }
-        };
-
-        window.pay = (plan) => {
-            if (!window.isDeviceVerified) {
-                alert(window.translations[window.currentLang].msg_verify_first);
-                document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' });
-                return;
-            }
-            const machine_id = document.getElementById('remoteCode').value;
-            let pId = "";
-            if (window.currentLang === 'ko') {
-                if (plan === '30min') pId = "pri_01kdze89gfya79z9rjwmxswhat";
-                else if (plan === '1hour') pId = "pri_01kdzecpcresbd5dx14bk69a49";
-                else if (plan === '3hours') pId = "pri_01kdzef4qmyzdykd61m332g414";
-            } else {
-                if (plan === '30min') pId = "pri_01khhpbh3er2aqj2qbh4y04w7h";
-                else if (plan === '1hour') pId = "pri_01khhpay2arxw9jtes10e45tdx";
-                else if (plan === '3hours') pId = "pri_01khhp8kd7rfft8fczav8341yn";
-            }
-            console.log("Starting Checkout with:", { priceId: pId, machine_id: machine_id, lang: window.currentLang });
-            Paddle.Checkout.open({
-                settings: { displayMode: "overlay", theme: "light", locale: window.currentLang === 'ko' ? "ko" : "en" },
-                items: [{ priceId: pId, quantity: 1 }],
-                customData: { machine_id: machine_id }
-            });
-        };
+        const recharge = installRecharge();
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedLang = localStorage.getItem('preferredLang') || (navigator.language.startsWith('ko') ? 'ko' : 'en');
             window.changeLanguage(savedLang);
-            const urlParams = new URLSearchParams(window.location.search);
-            const codeParam = urlParams.get('code');
-            const pwParam = urlParams.get('pw');
-            const tParam = urlParams.get('t');
-            if (codeParam) document.getElementById('remoteCode').value = codeParam;
-            if (pwParam) document.getElementById('password').value = pwParam;
-            if (codeParam && pwParam && tParam) {
-                const now = Date.now();
-                const requestTime = parseInt(tParam);
-                if (!isNaN(requestTime) && (now - requestTime) < 180000 && (now - requestTime) > -5000) {
-                    const captchaBox = document.getElementById('recaptcha-box');
-                    if (captchaBox) captchaBox.style.display = 'none';
-                    setTimeout(() => verifyDevice(true), 500);
-                }
-            }
+            const link = window.__tmRechargeLink || {};
+            delete window.__tmRechargeLink;
+            recharge.start(link);
 
             // 모바일일 경우 3D 캐러셀 효과
             if (window.innerWidth < 768) {
