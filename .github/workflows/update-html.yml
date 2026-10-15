@@ -8,73 +8,24 @@ permissions:
 
 jobs:
   update-html:
+    if: startsWith(github.event.release.tag_name, 'tm-v')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Get Release Info
-        id: release_info
-        run: |
-          # 1. MSI 다운로드 주소 추출 (jq 사용)
-          # .msi로 끝나는 파일의 다운로드 주소를 가져옵니다.
-          DOWNLOAD_URL=$(jq -r '.release.assets[] | select(.name | endswith(".msi")) | .browser_download_url' "$GITHUB_EVENT_PATH" | head -n 1)
-          echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> $GITHUB_ENV
-          
-          # 2. 날짜 포맷 변경 (YYYY-MM-DD)
-          FORMATTED_DATE=$(date -d "${{ github.event.release.published_at }}" +'%Y-%m-%d')
-          echo "FORMATTED_DATE=$FORMATTED_DATE" >> $GITHUB_ENV
-
-      - name: Update start.html
+      - name: Update download metadata while preserving the guide
         env:
-          # Python 내부로 안전하게 전달하기 위한 환경변수 설정
-          NEW_URL: ${{ env.DOWNLOAD_URL }}
-          NEW_VERSION: ${{ github.event.release.tag_name }}
-          NEW_DATE: ${{ env.FORMATTED_DATE }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          PUBLISHED_AT: ${{ github.event.release.published_at }}
         run: |
-          python3 -c "
-          import os
-
-          # 환경변수 값 가져오기
-          url = os.environ.get('NEW_URL')
-          ver = os.environ.get('NEW_VERSION')
-          date = os.environ.get('NEW_DATE')
-
-          file_path = 'start.html'
-
-          # 파일이 없거나 URL을 못 찾았을 경우 대비
-          if not url:
-              print('Error: .msi download URL not found.')
-              exit(1)
-
-          # HTML 읽기
-          with open(file_path, 'r', encoding='utf-8') as f:
-              lines = f.readlines()
-
-          new_lines = []
-          for line in lines:
-              # [중요] 'if - elif - else' 구조를 사용하여 중복 방지
-              
-              # 1. 다운로드 버튼 줄을 찾으면 -> 새 내용으로 교체 (기존 줄 버림)
-              if 'id=\"download-btn\"' in line:
-                  new_lines.append(f'        <a href=\"{url}\" id=\"download-btn\" class=\"btn\">💾 최신 버전 다운로드</a>\n')
-              
-              # 2. 버전 텍스트 줄을 찾으면 -> 새 내용으로 교체 (기존 줄 버림)
-              elif 'id=\"version-text\"' in line:
-                  new_lines.append(f'        <div id=\"version-text\" class=\"mt-2 text-xs text-gray-400\">Ver: <strong>{ver}</strong> ({date})</div>\n')
-              
-              # 3. 해당하지 않는 줄은 -> 그대로 유지
-              else:
-                  new_lines.append(line)
-
-          # 변경된 내용 저장
-          with open(file_path, 'w', encoding='utf-8') as f:
-              f.writelines(new_lines)
-          
-          print(f'Successfully updated {file_path}')
-          "
+          DOWNLOAD_URL=$(jq -r '.release.assets[] | select(.name == "Tm_setup.msi") | .browser_download_url' "$GITHUB_EVENT_PATH")
+          python3 scripts/update-download.py --tag "$RELEASE_TAG" --url "$DOWNLOAD_URL" --published-at "$PUBLISHED_AT"
+          python3 -m unittest discover -s tests -v
 
       - name: Commit and Push
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
@@ -85,10 +36,10 @@ jobs:
           if git diff --staged --quiet; then
             echo "변경사항이 없습니다. (이미 최신 상태이거나 파일이 변경되지 않음)"
           else
-            git commit -m "Auto-update start.html to ${{ github.event.release.tag_name }}"
+            git commit -m "Auto-update start.html to $RELEASE_TAG"
             
             # [중요] 원격 브랜치(main)의 최신 내용을 가져와서 충돌 방지
-            git pull origin main --rebase
+            git pull --rebase --autostash origin main
             
             # 변경 내용을 main 브랜치로 강제 푸시
             git push origin HEAD:main

@@ -1,303 +1,572 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>시작하기 - AI 스마트 콜 매니저</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <style>
-    body { font-family: 'Noto Sans KR', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
-    .step-num {
-        background-color: #1e293b;
-        color: white;
-        width: 1.75rem;
-        height: 1.75rem;
-        border-radius: 9999px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        font-size: 0.85rem;
-        flex-shrink: 0;
-        margin-top: 0.2rem;
-    }
-    .lang-btn { cursor: pointer; transition: color 0.2s; }
-    .lang-btn.active { color: #2563eb; font-weight: 900; text-decoration: underline; }
-  </style>
-</head>
-<body>
-
-<nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex justify-between items-center">
-        <a href="index.html" class="flex items-center space-x-1.5 hover:opacity-80 transition shrink-0">
-            <i class="fa-solid fa-clock-rotate-left text-blue-600 text-xl md:text-2xl"></i>
-            <span class="text-lg md:text-xl font-black text-slate-800 tracking-tighter" data-i18n="logo_text">콜센터만들기</span>
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <meta content="#092745" name="theme-color"/>
+  <title>
+   실행 방법 | 콜센터만들기
+  </title>
+  <meta content="최신 TM_server PC와 Android 앱의 설치, 서버 설정, 원격주소와 사용자 정보 입력, 녹음 폴더 선택, 최초 연결 승인까지 화면으로 안내합니다." name="description"/>
+  <link href="https://ilseoeng.github.io/start.html" rel="canonical"/>
+  <meta content="실행 방법 | 콜센터만들기" property="og:title"/>
+  <meta content="최신 TM_server PC와 Android 앱의 설치, 서버 설정, 원격주소와 사용자 정보 입력, 녹음 폴더 선택, 최초 연결 승인까지 화면으로 안내합니다." property="og:description"/>
+  <meta content="website" property="og:type"/>
+  <meta content="https://ilseoeng.github.io/start.html" property="og:url"/>
+  <link href="assets/favicon.svg" rel="icon" type="image/svg+xml"/>
+  <link href="assets/site.css" rel="stylesheet"/>
+  <script defer="" src="assets/site.js">
+  </script>
+ </head>
+ <body>
+  <a class="skip" href="#main">
+   본문으로 바로가기
+  </a>
+  <header class="header">
+   <div class="wrap header-inner">
+    <a class="brand" href="index.html">
+     <span aria-hidden="true" class="brand-mark">
+      TM
+     </span>
+     <span data-i18n="brand">
+      콜센터만들기
+     </span>
+    </a>
+    <button aria-controls="site-nav" aria-expanded="false" aria-label="메뉴 열기" class="nav-toggle">
+     ☰
+    </button>
+    <nav aria-label="주 메뉴" class="nav" id="site-nav">
+     <a href="index.html#features">
+      <span data-i18n="nav.about">
+       앱 소개
+      </span>
+     </a>
+     <a aria-current="page" href="start.html">
+      <span data-i18n="nav.guide">
+       실행 방법
+      </span>
+     </a>
+     <a href="pricing.html">
+      <span data-i18n="nav.topup">
+       이용권 충전
+      </span>
+     </a>
+     <div aria-label="Language" class="language">
+      <button aria-pressed="true" data-language="ko">
+       KR
+      </button>
+      <button aria-pressed="false" data-language="en">
+       EN
+      </button>
+     </div>
+     <a class="btn small" href="start.html#download">
+      <span data-i18n="nav.cta">
+       60분 체험 시작
+      </span>
+     </a>
+    </nav>
+   </div>
+  </header>
+  <main id="main">
+   <section class="guide-intro">
+    <div class="wrap">
+     <div class="eyebrow" data-i18n="guide.eye">
+      START HERE
+     </div>
+     <h1 data-i18n="guide.title">
+      설치부터 첫 통화 확인까지.
+     </h1>
+     <p data-i18n="guide.desc">
+      최신 PC·Android 화면을 기준으로 안내합니다. 기록을 보관할 호스트 PC를 먼저 실행하고, 휴대폰을 연결한 뒤 최초 접속을 승인하세요.
+     </p>
+    </div>
+   </section>
+   <nav aria-label="실행 방법 단계" class="guide-nav">
+    <div class="wrap">
+     <a href="#download">
+      <span data-i18n="guide.install">
+       01 설치
+      </span>
+     </a>
+     <a href="#pc">
+      <span data-i18n="guide.pc">
+       02 PC 설정
+      </span>
+     </a>
+     <a href="#phone">
+      <span data-i18n="guide.phone">
+       03 휴대폰 설정
+      </span>
+     </a>
+     <a href="#check">
+      <span data-i18n="guide.check">
+       04 연결 확인
+      </span>
+     </a>
+     <a href="#help">
+      <span data-i18n="guide.help">
+       문제 해결
+      </span>
+     </a>
+    </div>
+   </nav>
+   <div class="wrap">
+    <section class="guide-section" id="download">
+     <div class="guide-heading">
+      <span>
+       01
+      </span>
+      <div>
+       <h2 data-i18n="guide.1">
+        PC와 휴대폰, 두 앱을 설치하세요.
+       </h2>
+       <p data-i18n="guide.1d">
+        Windows PC와 Android 휴대폰을 준비해 주세요.
+       </p>
+      </div>
+     </div>
+     <div class="downloads">
+      <article class="download">
+       <div>
+        <div class="os" data-i18n="guide.win">
+         Windows PC
+        </div>
+        <h3 data-i18n="guide.pc.title">
+         TM_server PC 프로그램
+        </h3>
+        <div class="fine" id="version-text">
+         Ver:
+         <strong>
+          tm-v1.0.158
+         </strong>
+         (2026-10-15)
+        </div>
+        <a class="btn" data-i18n="guide.download" href="https://github.com/ilseoeng/ilseoeng.github.io/releases/download/tm-v1.0.158/Tm_setup.msi" id="download-btn">
+         최신 PC 버전 다운로드 ↗
         </a>
-
-        <div class="flex items-center space-x-2 md:space-x-6">
-            <div class="flex items-center space-x-1.5 text-[11px] md:text-sm font-bold text-slate-400 border-slate-300 md:border-r md:pr-6">
-                <button onclick="changeLanguage('ko')" id="btn-ko" class="lang-btn hover:text-slate-800 transition-colors">KR</button>
-                <span class="text-slate-200">|</span>
-                <button onclick="changeLanguage('en')" id="btn-en" class="lang-btn hover:text-slate-800 transition-colors">EN</button>
-            </div>
-
-            <a href="start.html" class="text-blue-600 font-bold hover:text-blue-700 transition text-sm hidden md:inline-block" data-i18n="nav_guide">
-                사용 가이드
-            </a>
-            <a href="pricing.html" class="px-3 py-2 md:px-5 md:py-2.5 bg-blue-600 text-white rounded-full text-[11px] md:text-sm font-black hover:bg-blue-700 transition shadow-lg shadow-blue-200 whitespace-nowrap" data-i18n="nav_pricing">
-                이용권 충전
-            </a>
+       </div>
+       <span aria-hidden="true" class="download-icon">
+        ▱
+       </span>
+      </article>
+      <article class="download">
+       <div>
+        <div class="os" data-i18n="guide.android">
+         Android
         </div>
+        <h3 data-i18n="guide.phone.title">
+         콜센터만들기 모바일 앱
+        </h3>
+        <p class="fine" data-i18n="guide.mobile.note">
+         iPhone은 지원하지 않습니다.
+        </p>
+        <a class="btn btn-secondary" href="https://play.google.com/store/apps/details?id=com.companyname.app_test" rel="noopener noreferrer" target="_blank">
+         <span data-i18n="guide.play">
+          Google Play에서 설치 ↗
+         </span>
+        </a>
+       </div>
+       <span aria-hidden="true" class="download-icon">
+        ▯
+       </span>
+      </article>
+     </div>
+     <p class="trial-note" data-i18n="guide.trial">
+      신규 등록 대상 기기에는 60분 체험 시간이 제공됩니다. 기존에 사용한 기기는 PC의 잔여 시간을 먼저 확인해 주세요.
+     </p>
+    </section>
+    <section class="guide-section" id="pc">
+     <div class="guide-heading">
+      <span>
+       02
+      </span>
+      <div>
+       <h2 data-i18n="guide.2">
+        기록을 보관할 호스트 PC를 실행하세요.
+       </h2>
+       <p data-i18n="guide.2d">
+        휴대폰과 다른 상담원 PC가 연결될 기준 PC입니다.
+       </p>
+      </div>
+     </div>
+     <div class="guide-grid">
+      <div class="guide-shot">
+       <figure style="margin:0">
+        <button aria-label="최신 PC 홈 서버 설정 화면 확대" class="screen-button screen-frame" data-zoom="">
+         <img alt="최신 PC 홈 서버 설정 화면" height="750" loading="lazy" src="assets/screens/pc-server.svg" width="1200"/>
+         <span class="zoom-label">
+          <span data-i18n="zoom">
+           크게 보기 ↗
+          </span>
+         </span>
+        </button>
+        <figcaption class="figure-note">
+         <span data-i18n="guide.figure.pc">
+          최신 앱 화면을 바탕으로 재구성한 안내용 화면입니다. 입력값과 상담 내용은 예시입니다.
+         </span>
+        </figcaption>
+       </figure>
+      </div>
+      <div class="guide-copy">
+       <div class="instructions">
+        <div class="instruction">
+         <h3 data-i18n="pc.1">
+          홈 → 서버 탭을 여세요.
+         </h3>
+         <p data-i18n="pc.1d">
+          왼쪽 메뉴에서 홈을 누르고 상단의 서버 탭을 선택합니다. 오른쪽 위 사용자정보에 ‘상담팀’처럼 사용할 이름을 입력하세요.
+         </p>
+        </div>
+        <div class="instruction">
+         <h3 data-i18n="pc.2">
+          비밀번호와 원격주소를 확인하세요.
+         </h3>
+         <p data-i18n="pc.2d">
+          비밀번호는 6글자 이상으로 설정합니다. 화면에 표시된 원격주소는 휴대폰을 연결할 때 사용합니다.
+         </p>
+        </div>
+        <div class="instruction">
+         <h3 data-i18n="pc.3">
+          필요한 경우 녹음 저장 폴더를 정하세요.
+         </h3>
+         <p data-i18n="pc.3d">
+          PC의 ‘녹음파일’ 항목은 PC에 기록을 저장할 위치입니다. 휴대폰에서 선택하는 통화 녹음 폴더와는 별개입니다.
+         </p>
+        </div>
+        <div class="instruction">
+         <h3 data-i18n="pc.4">
+          서비스시작을 누르세요.
+         </h3>
+         <p data-i18n="pc.4d">
+          서버 연결 완료 상태를 확인합니다. 휴대폰과 다른 상담원이 사용하는 동안 이 PC와 프로그램을 실행해 두세요.
+         </p>
+        </div>
+       </div>
+       <p class="note-box" data-i18n="pc.note">
+        휴대폰에는 이 PC와 같은 원격주소·비밀번호·사용자정보를 입력합니다. 화면의 ‘123 abc’는 설명용 예시입니다.
+       </p>
+      </div>
+     </div>
+    </section>
+    <section class="guide-section" id="phone">
+     <div class="guide-heading">
+      <span>
+       03
+      </span>
+      <div>
+       <h2 data-i18n="guide.3">
+        휴대폰 홈에서 연결 정보를 저장하세요.
+       </h2>
+       <p data-i18n="guide.3d">
+        화면의 접힌 항목을 누르면 입력란이 열립니다.
+       </p>
+      </div>
+     </div>
+     <div class="guide-grid phone-grid">
+      <div class="guide-shot">
+       <figure style="margin:0">
+        <button aria-label="Android 원격주소 및 사용자 정보 설정 화면 확대" class="screen-button phone-figure" data-zoom="">
+         <img alt="Android 원격주소 및 사용자 정보 설정 화면" height="870" loading="lazy" src="assets/screens/mobile-settings.svg" width="400"/>
+         <span class="zoom-label">
+          <span data-i18n="zoom">
+           크게 보기 ↗
+          </span>
+         </span>
+        </button>
+        <figcaption class="figure-note">
+         <span data-i18n="guide.figure.phone">
+          최신 앱 화면을 바탕으로 재구성한 안내용 화면입니다. 입력값과 상담 내용은 예시입니다.
+         </span>
+        </figcaption>
+       </figure>
+      </div>
+      <div class="guide-copy">
+       <div class="instructions">
+        <div class="instruction">
+         <h3 data-i18n="phone.1">
+          원격주소 (필수입력)를 펼치세요.
+         </h3>
+         <p data-i18n="phone.1d">
+          호스트 PC에 표시된 원격주소와 설정한 비밀번호를 입력하고 저장을 누릅니다.
+         </p>
+        </div>
+        <div class="instruction">
+         <h3 data-i18n="phone.2">
+          사용자 정보 (필수입력)를 펼치세요.
+         </h3>
+         <p data-i18n="phone.2d">
+          이름 또는 닉네임에 PC의 사용자정보와 같은 이름을 입력한 뒤 저장하세요.
+         </p>
+        </div>
+        <div class="instruction">
+         <h3 data-i18n="phone.3">
+          녹음 폴더 선택을 누르세요.
+         </h3>
+         <p data-i18n="phone.3d">
+          휴대폰의 실제 통화 녹음 폴더를 선택합니다. 일부 삼성 휴대폰은 Recordings/Call을 사용하지만 기기에 따라 다릅니다.
+         </p>
+        </div>
+        <div class="instruction">
+         <h3 data-i18n="phone.4">
+          요청된 권한을 확인하고 서비스를 시작하세요.
+         </h3>
+         <p data-i18n="phone.4d">
+          앱에서 요청하는 전화·알림·파일 접근 권한을 확인합니다. 홈으로 돌아와 서비스 시작을 누르세요.
+         </p>
+        </div>
+       </div>
+       <p class="note-box" data-i18n="phone.note">
+        이미 서비스가 실행 중이면 서비스 중지를 누른 뒤 연결 정보를 수정·저장하고 다시 시작하세요. 녹음 기능은 휴대폰 전화 앱의 통화 녹음 설정이 필요하며, 폴더를 선택하는 것만으로 녹음이 시작되지는 않습니다.
+       </p>
+      </div>
+     </div>
+    </section>
+    <section class="guide-section" id="check">
+     <div class="guide-heading">
+      <span>
+       04
+      </span>
+      <div>
+       <h2 data-i18n="guide.4">
+        PC에서 승인하고 첫 통화를 확인하세요.
+       </h2>
+       <p data-i18n="guide.4d">
+        중계기 연결 표시만으로 휴대폰의 접속 승인이 끝난 것은 아닙니다.
+       </p>
+      </div>
+     </div>
+     <div class="success-flow">
+      <article class="success-step">
+       <span>
+        01
+       </span>
+       <h3 data-i18n="check.1">
+        호스트 PC에서 승인
+       </h3>
+       <p data-i18n="check.1d">
+        최초 접속 요청에 표시된 사용자정보와 기기를 확인하고 승인합니다.
+       </p>
+      </article>
+      <article class="success-step">
+       <span>
+        02
+       </span>
+       <h3 data-i18n="check.2">
+        연결 상태 확인
+       </h3>
+       <p data-i18n="check.2d">
+        휴대폰의 서비스 상태가 실행 중인지, 호스트 PC에 승인된 접속자가 표시되는지 확인합니다.
+       </p>
+      </article>
+      <article class="success-step">
+       <span>
+        03
+       </span>
+       <h3 data-i18n="check.3">
+        통화 알림 열기
+       </h3>
+       <p data-i18n="check.3d">
+        연결한 휴대폰으로 테스트 전화를 걸거나 받아 보세요. PC 우측 하단 알림을 열어 이력을 확인하고 메모를 남깁니다.
+       </p>
+      </article>
+     </div>
+     <div class="guide-call">
+      <figure style="margin:0">
+       <button aria-label="통화 알림을 연 후 확인하는 통화이력과 상담 화면 확대" class="screen-button screen-frame" data-zoom="">
+        <img alt="통화 알림을 연 후 확인하는 통화이력과 상담 화면" height="750" loading="lazy" src="assets/screens/pc-calls.svg" width="1200"/>
+        <span class="zoom-label">
+         <span data-i18n="zoom">
+          크게 보기 ↗
+         </span>
+        </span>
+       </button>
+       <figcaption class="figure-note">
+        <span data-i18n="check.note">
+         최신 앱 화면을 바탕으로 재구성한 안내용 화면입니다. 입력값과 상담 내용은 예시입니다.
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+     <details class="team-detail">
+      <summary>
+       <span data-i18n="team.title">
+        다른 상담원 PC도 연결하려면
+       </span>
+      </summary>
+      <div class="guide-grid">
+       <div class="guide-shot">
+        <figure style="margin:0">
+         <button aria-label="추가 상담원 PC의 클라이언트 연결 화면 확대" class="screen-button screen-frame" data-zoom="">
+          <img alt="추가 상담원 PC의 클라이언트 연결 화면" height="750" loading="lazy" src="assets/screens/pc-client.svg" width="1200"/>
+          <span class="zoom-label">
+           <span data-i18n="zoom">
+            크게 보기 ↗
+           </span>
+          </span>
+         </button>
+         <figcaption class="figure-note">
+          <span data-i18n="hero.caption">
+           최신 앱 화면을 바탕으로 재구성한 안내용 화면입니다. 입력값과 상담 내용은 예시입니다.
+          </span>
+         </figcaption>
+        </figure>
+       </div>
+       <div>
+        <ul class="check-list">
+         <li data-i18n="team.1">
+          추가 PC에서 홈 → 클라이언트 탭을 엽니다.
+         </li>
+         <li data-i18n="team.2">
+          호스트의 원격주소·비밀번호와 해당 상담원의 사용자정보를 입력합니다.
+         </li>
+         <li data-i18n="team.3">
+          서버 연결을 누르고, 호스트 PC에서 새 기기의 접속을 승인합니다.
+         </li>
+         <li data-i18n="team.4">
+          이력을 제공하는 호스트 PC를 계속 실행해 두세요.
+         </li>
+        </ul>
+       </div>
+      </div>
+     </details>
+    </section>
+    <section class="guide-section" id="help">
+     <div class="guide-heading">
+      <span>
+       ?
+      </span>
+      <div>
+       <h2 data-i18n="help.title">
+        연결이 잘 안 되나요?
+       </h2>
+       <p data-i18n="help.titled">
+       </p>
+      </div>
+     </div>
+     <div class="faq">
+      <details>
+       <summary>
+        <span data-i18n="help.1">
+         휴대폰이 서버에 연결되지 않아요.
+        </span>
+       </summary>
+       <p data-i18n="help.1d">
+        호스트 PC의 서비스가 실행 중인지, 원격주소와 비밀번호가 맞는지, PC에서 최초 접속을 승인했는지 확인하세요.
+       </p>
+      </details>
+      <details>
+       <summary>
+        <span data-i18n="help.2">
+         전화는 오는데 PC 알림이 안 보여요.
+        </span>
+       </summary>
+       <p data-i18n="help.2d">
+        PC와 휴대폰의 사용자정보가 같은지 확인하세요. 모바일 서비스가 실행 중인지, 앱이 요청한 전화·알림 권한이 허용되어 있는지도 확인합니다.
+       </p>
+      </details>
+      <details>
+       <summary>
+        <span data-i18n="help.3">
+         녹음이나 텍스트 기록이 없어요.
+        </span>
+       </summary>
+       <p data-i18n="help.3d">
+        휴대폰에 실제 녹음 파일이 저장되는지, 선택한 폴더가 맞는지 확인하세요. ‘Wi-Fi 시에만 업로드’가 켜져 있으면 Wi-Fi 연결도 확인해 주세요.
+       </p>
+      </details>
+      <details>
+       <summary>
+        <span data-i18n="help.4">
+         잔여 시간이 없다고 표시돼요.
+        </span>
+       </summary>
+       <p data-i18n="help.4d">
+        PC 앱에서 충전을 눌러 인증된 페이지에서 이용권을 선택하세요. 결제가 끝나면 잔여 시간의 갱신 버튼을 누릅니다.
+       </p>
+      </details>
+     </div>
+     <p class="guide-assumptions" data-i18n="help.support">
+      추가 문의는 PC 앱의 공지사항 메뉴에서 확인하고 문의를 남길 수 있습니다.
+     </p>
+    </section>
+   </div>
+   <section class="cta">
+    <div class="wrap cta-inner">
+     <div>
+      <h2 data-i18n="guide.final.title">
+       연결됐다면, 다음 상담을 이어가세요.
+      </h2>
+      <p data-i18n="guide.final.desc">
+       통화 알림과 이력, 메모, AI 채팅을 화면으로 둘러보세요.
+      </p>
+     </div>
+     <a class="btn" href="index.html#features">
+      <span data-i18n="guide.final.cta">
+       앱 기능 둘러보기
+      </span>
+      <span aria-hidden="true">
+       ↗
+      </span>
+     </a>
     </div>
-</nav>
-
-<main class="max-w-5xl mx-auto px-6 py-16 space-y-24">
-
-    <section>
-        <div class="text-center mb-12">
-            <span class="text-blue-600 font-bold text-sm bg-blue-50 px-3 py-1 rounded-full">Step 1</span>
-            <h1 class="text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-4" data-i18n="guide_page_title">프로그램 설치하기</h1>
-            <p class="text-slate-500" data-i18n="guide_page_desc">PC 프로그램과 스마트폰 앱을 모두 설치해야 연결할 수 있습니다.</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-xl text-center hover:-translate-y-1 transition duration-300">
-                <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-6"><i class="fa-solid fa-desktop"></i></div>
-                <h2 class="text-2xl font-bold mb-8 text-slate-800" data-i18n="dl_pc_title">PC 프로그램 설치</h2>
-
-        <a href="https://github.com/ilseoeng/ilseoeng.github.io/releases/download/tm-v1.0.158/Tm_setup.msi" id="download-btn" class="btn">💾 최신 버전 다운로드</a>
-                    <i class="fa-solid fa-download mr-2"></i> <span data-i18n="dl_pc_btn">PC 버전 다운로드</span>
-                </a>
-
-        <div id="version-text" class="mt-2 text-xs text-gray-400">Ver: <strong>tm-v1.0.158</strong> (2026-10-15)</div>
-            </div>
-
-            <div class="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-xl text-center hover:-translate-y-1 transition duration-300">
-                <div class="w-20 h-20 bg-green-50 text-green-600 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-6"><i class="fa-brands fa-android"></i></div>
-                <h2 class="text-2xl font-bold mb-8 text-slate-800" data-i18n="dl_mo_title">모바일 앱 설치</h2>
-                <a href="https://play.google.com/store/apps/details?id=com.companyname.app_test&pli=1" target="_blank" class="block w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition shadow-lg mb-4 text-lg">
-                    <i class="fa-brands fa-google-play mr-2"></i> <span data-i18n="dl_mo_btn">Google Play로 이동</span>
-                </a>
-                <div class="text-xs text-slate-400 font-bold">Android Only</div>
-            </div>
-        </div>
-    </section>
-
-    <hr class="border-slate-200">
-
-    <section>
-        <div class="flex items-center space-x-4 mb-10">
-            <span class="bg-slate-900 text-white w-10 h-10 rounded-2xl flex items-center justify-center font-black text-lg">2</span>
-            <h2 class="text-3xl font-black text-slate-900" data-i18n="pc_step_title">PC 프로그램 설정</h2>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-            <div class="bg-slate-100 rounded-3xl p-3 border border-slate-200 shadow-inner">
-                <img src="images/pc-guide.png" alt="PC 설정 가이드" class="w-full h-auto rounded-2xl shadow-sm border border-slate-200">
-            </div>
-            <div class="space-y-2">
-                <ul class="space-y-6 text-slate-700">
-                    <li class="flex items-start gap-4 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                        <span class="step-num">1</span>
-                        <div><strong class="block text-lg mb-1" data-i18n="pc_step1_t">서버 모드 클릭</strong><span class="text-sm text-slate-500" data-i18n="pc_step1_d">프로그램 상단에서 서버 모드를 선택하세요.</span></div>
-                    </li>
-                    <li class="flex items-start gap-4 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                        <span class="step-num">2</span>
-                        <div><strong class="block text-lg mb-1" data-i18n="pc_step2_t">비밀번호 입력</strong><span class="text-sm text-slate-500" data-i18n="pc_step2_d">보안을 위해 6자리 이상의 비밀번호를 설정하세요.</span></div>
-                    </li>
-                    <li class="flex items-start gap-4 p-4 bg-blue-50 rounded-2xl border border-blue-100 shadow-sm ring-2 ring-blue-100">
-                        <span class="step-num bg-blue-600">3</span>
-                        <div>
-                            <strong class="block text-lg mb-1 text-blue-900" data-i18n="pc_step3_t">사용자 정보 입력</strong>
-                            <span class="text-sm text-blue-700 font-medium"><i class="fa-solid fa-triangle-exclamation mr-1"></i><span data-i18n="pc_step3_d">중요: 앱의 사용자 정보와 정확히 일치해야 알림을 받을 수 있습니다.</span></span>
-                        </div>
-                    </li>
-                    <li class="flex items-start gap-4 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                        <span class="step-num">4</span>
-                        <div><strong class="block text-lg mb-1" data-i18n="pc_step4_t">서버 시작 버튼 클릭</strong><span class="text-sm text-slate-500" data-i18n="pc_step4_d">설정이 끝나면 서버를 시작하세요.</span></div>
-                    </li>
-                    <li class="flex items-start gap-4 p-4 bg-slate-900 text-white rounded-2xl shadow-lg">
-                        <span class="step-num bg-white text-slate-900">5</span>
-                        <div>
-                            <strong class="block text-lg mb-1" data-i18n="pc_step5_t">원격 코드 발급 완료</strong>
-                            <span class="text-sm text-slate-300" data-i18n="pc_step5_d">6자리 원격 코드는 테스트 시간 20분이 부여됩니다.</span>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <section>
-        <div class="flex items-center space-x-4 mb-10">
-            <span class="bg-slate-900 text-white w-10 h-10 rounded-2xl flex items-center justify-center font-black text-lg">3</span>
-            <h2 class="text-3xl font-black text-slate-900" data-i18n="mo_step_title">스마트폰 앱 설정</h2>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-            <div class="bg-slate-100 rounded-3xl p-3 border border-slate-200 shadow-inner lg:order-2">
-                <img src="images/phone-guide.png" alt="스마트폰 앱 설정 가이드" class="w-full h-auto rounded-2xl shadow-sm border border-slate-200">
-            </div>
-            <div class="space-y-2 lg:order-1">
-                <ul class="space-y-6 text-slate-700">
-                    <li class="flex items-start gap-4 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                        <span class="step-num">1</span>
-                        <div><strong class="block text-lg mb-1" data-i18n="mo_step1_t">원격 코드 입력</strong><span class="text-sm text-slate-500" data-i18n="mo_step1_d">PC에서 발급된 6자리 코드를 입력하세요.</span></div>
-                    </li>
-                    <li class="flex items-start gap-4 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                        <span class="step-num">2</span>
-                        <div><strong class="block text-lg mb-1" data-i18n="mo_step2_t">비밀번호 입력</strong><span class="text-sm text-slate-500" data-i18n="mo_step2_d">PC에서 설정한 비밀번호를 동일하게 입력하세요.</span></div>
-                    </li>
-                    <li class="flex items-start gap-4 p-4 bg-blue-50 rounded-2xl border border-blue-100 shadow-sm ring-2 ring-blue-100">
-                        <span class="step-num bg-blue-600">3</span>
-                        <div><strong class="block text-lg mb-1 text-blue-900" data-i18n="mo_step3_t">사용자 정보 입력</strong><span class="text-sm text-blue-700 font-medium" data-i18n="mo_step3_d">PC에 입력한 사용자 정보와 똑같이 입력해야 합니다.</span></div>
-                    </li>
-                    <li class="flex items-start gap-4 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                        <span class="step-num">4</span>
-                        <div>
-                            <strong class="block text-lg mb-1" data-i18n="mo_step4_t">녹음 폴더 선택</strong>
-                            <span class="text-sm text-slate-500"><span data-i18n="mo_step4_d">통화 녹음 파일이 저장되는 폴더를 지정하세요.</span><br><span class="text-xs bg-slate-100 px-2 py-1 rounded text-slate-600 mt-1 inline-block">Recordings/Call</span></span>
-                        </div>
-                    </li>
-                    <li class="flex items-start gap-4 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                        <span class="step-num">5</span>
-                        <div><strong class="block text-lg mb-1" data-i18n="mo_step5_t">서비스 시작</strong><span class="text-sm text-slate-500" data-i18n="mo_step5_d">서비스 시작 버튼을 누르세요.</span></div>
-                    </li>
-                    <li class="flex items-start gap-4 p-4 bg-slate-900 text-white rounded-2xl shadow-lg">
-                        <span class="step-num bg-white text-slate-900">6</span>
-                        <div><strong class="block text-lg mb-1" data-i18n="mo_step6_t">최초 연결 승인</strong><span class="text-sm text-slate-300" data-i18n="mo_step6_d">PC 화면에 뜨는 승인 요청을 허락하면 연결됩니다.</span></div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-</main>
-
-<footer class="py-16 bg-white border-t border-slate-200">
-    <div class="max-w-6xl mx-auto px-6 text-center">
-        <div class="flex justify-center space-x-8 mb-8 text-slate-400 text-xs font-bold uppercase tracking-widest">
-            <a href="terms.html" class="hover:text-blue-600 transition">Terms</a>
-            <a href="privacy.html" class="hover:text-blue-600 transition">Privacy</a>
-            <a href="refund.html" class="hover:text-blue-600 transition">Refund</a>
-        </div>
-        <div class="text-slate-400 text-xs space-y-2">
-            <p>© 2026 <span data-i18n="logo_text">콜센터만들기</span>. All rights reserved.</p>
-            <p>Contact: <a href="mailto:ilseoengapp@gmail.com" class="hover:text-blue-600 underline">ilseoengapp@gmail.com</a></p>
-        </div>
+   </section>
+  </main>
+  <footer class="footer">
+   <div class="wrap">
+    <div class="footer-top">
+     <a class="brand" href="index.html">
+      <span aria-hidden="true" class="brand-mark">
+       TM
+      </span>
+      <span data-i18n="brand">
+       콜센터만들기
+      </span>
+     </a>
+     <div class="footer-links">
+      <a href="start.html">
+       <span data-i18n="footer.guide">
+        실행 방법
+       </span>
+      </a>
+      <a href="terms.html">
+       <span data-i18n="footer.terms">
+        이용약관
+       </span>
+      </a>
+      <a href="privacy.html">
+       <span data-i18n="footer.privacy">
+        개인정보처리방침
+       </span>
+      </a>
+      <a href="refund.html">
+       <span data-i18n="footer.refund">
+        환불정책
+       </span>
+      </a>
+     </div>
     </div>
-</footer>
-
-<script>
-    const translations = {
-        ko: {
-            logo_text: "콜센터만들기",
-            nav_guide: "사용 가이드",
-            nav_pricing: "이용권 충전",
-
-            guide_page_title: "프로그램 설치하기",
-            guide_page_desc: "PC 프로그램과 스마트폰 앱을 모두 설치해야 연결할 수 있습니다.",
-
-            dl_pc_title: "PC 프로그램 설치",
-            dl_pc_btn: "PC 버전 다운로드",
-            dl_mo_title: "모바일 앱 설치",
-            dl_mo_btn: "Google Play로 이동",
-
-            pc_step_title: "PC 프로그램 설정",
-            pc_step1_t: "서버 모드 클릭",
-            pc_step1_d: "프로그램 상단에서 서버 모드를 선택하세요.",
-            pc_step2_t: "비밀번호 입력",
-            pc_step2_d: "보안을 위해 6자리 이상의 비밀번호를 설정하세요.",
-            pc_step3_t: "사용자 정보 입력",
-            pc_step3_d: "중요: 앱의 사용자 정보와 정확히 일치해야 알림을 받을 수 있습니다.",
-            pc_step4_t: "서버 시작 버튼 클릭",
-            pc_step4_d: "설정이 끝나면 서버를 시작하세요.",
-            pc_step5_t: "원격 코드 발급 완료",
-            pc_step5_d: "6자리 원격 코드는 테스트 시간 20분이 부여됩니다.",
-
-            mo_step_title: "스마트폰 앱 설정",
-            mo_step1_t: "원격 코드 입력",
-            mo_step1_d: "PC에서 발급된 6자리 코드를 입력하세요.",
-            mo_step2_t: "비밀번호 입력",
-            mo_step2_d: "PC에서 설정한 비밀번호를 동일하게 입력하세요.",
-            mo_step3_t: "사용자 정보 입력",
-            mo_step3_d: "PC에 입력한 사용자 정보와 똑같이 입력해야 합니다.",
-            mo_step4_t: "녹음 폴더 선택",
-            mo_step4_d: "통화 녹음 파일이 저장되는 폴더를 지정하세요.",
-            mo_step5_t: "서비스 시작",
-            mo_step5_d: "서비스 시작 버튼을 누르세요.",
-            mo_step6_t: "최초 연결 승인",
-            mo_step6_d: "PC 화면에 뜨는 승인 요청을 허락하면 연결됩니다."
-        },
-        en: {
-            logo_text: "Call Center Maker",
-            nav_guide: "User Guide",
-            nav_pricing: "Pricing",
-
-            guide_page_title: "Installation",
-            guide_page_desc: "You must install both the PC program and the mobile app to connect.",
-
-            dl_pc_title: "Install PC Program",
-            dl_pc_btn: "Download for PC",
-            dl_mo_title: "Install Mobile App",
-            dl_mo_btn: "Go to Google Play",
-
-            pc_step_title: "PC Setup Guide",
-            pc_step1_t: "Click Server Mode",
-            pc_step1_d: "Select Server Mode at the top of the program.",
-            pc_step2_t: "Enter Password",
-            pc_step2_d: "Set a password of at least 6 digits for security.",
-            pc_step3_t: "Enter User Info",
-            pc_step3_d: "Important: This must exactly match the app user info to receive alerts.",
-            pc_step4_t: "Click Start Server",
-            pc_step4_d: "Start the server after completing the settings.",
-            pc_step5_t: "Remote Code Generated",
-            pc_step5_d: "A 6-digit remote code is issued with 20 minutes of test time.",
-
-            mo_step_title: "Mobile App Setup",
-            mo_step1_t: "Enter Remote Code",
-            mo_step1_d: "Enter the 6-digit code issued from your PC.",
-            mo_step2_t: "Enter Password",
-            mo_step2_d: "Enter the same password you set on the PC.",
-            mo_step3_t: "Enter User Info",
-            mo_step3_d: "Enter exactly the same user info as on the PC.",
-            mo_step4_t: "Select Recording Folder",
-            mo_step4_d: "Select the folder where call recordings are saved.",
-            mo_step5_t: "Start Service",
-            mo_step5_d: "Press the Start Service button.",
-            mo_step6_t: "Approve First Connection",
-            mo_step6_d: "Approve the request shown on the PC screen to connect."
-        }
-    };
-
-    function changeLanguage(lang) {
-        const elements = document.querySelectorAll('[data-i18n]');
-        elements.forEach(element => {
-            const key = element.getAttribute('data-i18n');
-            if (translations[lang] && translations[lang][key]) {
-                element.innerHTML = translations[lang][key];
-            }
-        });
-
-        document.getElementById('btn-ko').classList.toggle('active', lang === 'ko');
-        document.getElementById('btn-ko').classList.toggle('text-slate-400', lang !== 'ko');
-        document.getElementById('btn-en').classList.toggle('active', lang === 'en');
-        document.getElementById('btn-en').classList.toggle('text-slate-400', lang !== 'en');
-
-        localStorage.setItem('preferredLang', lang);
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const savedLang = localStorage.getItem('preferredLang');
-        const userLang = navigator.language || navigator.userLanguage;
-        const defaultLang = savedLang || (userLang.startsWith('ko') ? 'ko' : 'en');
-        changeLanguage(defaultLang);
-    });
-</script>
-
-</body>
+    <div class="footer-bottom">
+     <span>
+      © 2026 IRIN.
+      <span data-i18n="footer.tagline">
+       휴대폰 통화를 팀의 상담 기록으로.
+      </span>
+     </span>
+     <a href="mailto:ilseoengapp@gmail.com">
+      ilseoengapp@gmail.com
+     </a>
+    </div>
+   </div>
+  </footer>
+  <dialog aria-labelledby="dialog-title" class="screen-dialog" id="screen-dialog">
+   <div class="dialog-top">
+    <strong id="dialog-title">
+    </strong>
+    <button aria-label="확대 화면 닫기" class="dialog-close">
+     ×
+    </button>
+   </div>
+   <img alt="" class="dialog-image" src="assets/screens/pc-server.svg"/>
+  </dialog>
+ </body>
 </html>
